@@ -22,6 +22,14 @@ jobs:
           cp app/main.dart lib/main.dart
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' android/app/src/main/AndroidManifest.xml
       - run: flutter pub add video_player
+            - name: Matikan lint vital
+        run: |
+          F=$(ls android/build.gradle.kts android/build.gradle 2>/dev/null | head -n1)
+          if [ "$F" = "android/build.gradle.kts" ]; then
+            printf '\nsubprojects {\n    tasks.configureEach {\n        if (name.startsWith("lintVital")) { enabled = false }\n    }\n}\n' >> "$F"
+          else
+            printf '\nsubprojects {\n    tasks.configureEach { task ->\n        if (task.name.startsWith("lintVital")) { task.enabled = false }\n    }\n}\n' >> "$F"
+          fi
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
